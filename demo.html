@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
+  <meta name="theme-color" content="#0d9488" />
+  <title>Double-Entry Bookkeeping</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #14b8a6;
+      --primary-dark: #0d9488;
+      --primary-glow: rgba(20, 184, 166, 0.35);
+      --bg: #0b1120;
+      --bg-elevated: #111827;
+      --surface: #1a2332;
+      --surface-hover: #243044;
+      --border: rgba(148, 163, 184, 0.12);
+      --border-strong: rgba(148, 163, 184, 0.2);
+      --text: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --success: #34d399;
+      --success-bg: rgba(52, 211, 153, 0.12);
+      --warning: #fbbf24;
+      --warning-bg: rgba(251, 191, 36, 0.12);
+      --danger: #f87171;
+      --offline: #fb923c;
+      --radius: 16px;
+      --radius-sm: 12px;
+      --radius-xs: 8px;
+      --touch: 48px;
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      --safe-t: env(safe-area-inset-top, 0px);
+      --shadow: 0 4px 24px rgba(0,0,0,0.25);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      font-size: 15px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .phone {
+      max-width: 400px;
+      margin: 0 auto;
+      min-height: 100dvh;
+      background: linear-gradient(180deg, #0f172a 0%, #0b1120 100%);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Offline banner */
+    .offline-banner {
+      background: linear-gradient(90deg, #ea580c, #f97316);
+      color: #fff;
+      text-align: center;
+      padding: 10px 16px;
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 2px 12px rgba(249, 115, 22, 0.3);
+    }
+    .offline-banner svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    /* Header */
+    .app-header {
+      background: rgba(26, 35, 50, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      padding-top: calc(14px + var(--safe-t));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .app-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #f8fafc, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+    }
+
+    .app-main {
+      flex: 1;
+      padding: 20px;
+      padding-bottom: 96px;
+      overflow-y: auto;
+      animation: fadeIn 0.25s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .card:active { transform: scale(0.985); }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: var(--touch);
+      padding: 0 20px;
+      font-family: inherit;
+      font-size: 14.5px;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 10px;
+      transition: transform 0.12s, box-shadow 0.15s, background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: linear-gradient(135deg, #14b8a6, #0d9488);
+      color: white;
+      box-shadow: 0 4px 16px var(--primary-glow), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .btn-primary:hover { box-shadow: 0 6px 24px var(--primary-glow); }
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+    }
+    .btn-secondary:hover { background: var(--surface-hover); }
+    .btn-danger {
+      background: linear-gradient(135deg, #f87171, #ef4444);
+      color: white;
+    }
+    .btn-sm {
+      width: auto;
+      min-height: 36px;
+      padding: 0 14px;
+      font-size: 13px;
+      border-radius: var(--radius-xs);
+    }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: linear-gradient(145deg, #1e2a3a, #1a2332);
+      border-radius: var(--radius);
+      padding: 18px 16px;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--primary), transparent);
+    }
+    .stat-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    .stat-value {
+      font-size: 1.85rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+
+    /* Subtitle */
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 13.5px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--offline);
+      box-shadow: 0 0 8px var(--offline);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 400px;
+      margin: 0 auto;
+      background: rgba(17, 24, 39, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      height: calc(68px + var(--safe-b));
+      padding-bottom: var(--safe-b);
+      z-index: 50;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.3);
+    }
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: var(--text-muted);
+      font-size: 10.5px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+    }
+    .nav-item.active { color: var(--primary); }
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      top: 6px;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 8px var(--primary);
+    }
+    .nav-item svg {
+      width: 22px; height: 22px;
+      stroke-width: 1.75;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* Forms */
+    .label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      letter-spacing: 0.01em;
+    }
+    .input, .select {
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 16px;
+      font-family: inherit;
+      font-size: 15px;
+      color: var(--text);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      margin-bottom: 14px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .input:focus, .select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    .select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+
+    /* Journal lines */
+    .line-card {
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+    .line-num {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .totals-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      background: linear-gradient(135deg, rgba(52, 211, 153, 0.08), rgba(20, 184, 166, 0.05));
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .totals-bar .balanced {
+      color: var(--success);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Badges */
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.02em;
+    }
+    .badge-posted {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+    }
+    .badge-draft {
+      background: var(--warning-bg);
+      color: var(--warning);
+      border: 1px solid rgba(251, 191, 36, 0.25);
+    }
+
+    /* Journal list item */
+    .journal-item {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      padding: 14px 16px;
+    }
+    .journal-item .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .journal-item .num { font-weight: 700; font-size: 14.5px; letter-spacing: -0.01em; }
+    .journal-item .meta { font-size: 12.5px; color: var(--text-muted); }
+
+    /* Section header */
+    .section-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 20px 0 10px;
+    }
+    .section-label:first-child { margin-top: 0; }
+
+    /* Account row */
+    .account-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 13px 16px;
+    }
+    .account-row .code {
+      font-weight: 700;
+      margin-right: 10px;
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+    .account-row .side {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Trial balance */
+    .tb-summary {
+      background: linear-gradient(145deg, rgba(52, 211, 153, 0.1), rgba(20, 184, 166, 0.04));
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+    .tb-summary .row {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .tb-summary .ok {
+      text-align: center;
+      margin-top: 12px;
+      color: var(--success);
+      font-weight: 700;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      padding: 10px 6px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-strong);
+    }
+    th:last-child, td:last-child { text-align: right; }
+    td {
+      padding: 11px 6px;
+      border-bottom: 1px solid var(--border);
+      font-variant-numeric: tabular-nums;
+    }
+    tr:last-child td { border-bottom: none; }
+
+    .pillars {
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 28px;
+      line-height: 1.7;
+      letter-spacing: 0.02em;
+    }
+    .pillars strong {
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .muted { color: var(--text-muted); font-size: 13px; }
+
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      margin-bottom: 6px;
+    }
+
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    /* Desktop enhancement */
+    @media (min-width: 420px) {
+      body { padding: 24px 0; background: #060a12; }
+      .phone {
+        border-radius: 28px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,0.03);
+        min-height: 780px;
+        max-height: 90vh;
+      }
+      .bottom-nav { border-radius: 0 0 28px 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="offline-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.58 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01"/></svg>
+      You are offline — all changes saved locally
+    </div>
+
+    <!-- HOME -->
+    <div id="screen-home" class="screen active">
+      <div class="app-header">
+        <div class="app-title">Acme Trading Co.</div>
+        <span class="header-badge">● Live</span>
+      </div>
+      <div class="app-main">
+        <div class="subtitle">
+          <span class="dot"></span>
+          INR · Offline mode
+        </div>
+
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-label">Journals</div>
+            <div class="stat-value">12</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Accounts</div>
+            <div class="stat-value">18</div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="show('journal-new')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          New Journal Entry
+        </button>
+        <button class="btn btn-secondary" onclick="show('trial')">Trial Balance</button>
+        <button class="btn btn-secondary" onclick="show('accounts')">Chart of Accounts</button>
+
+        <p class="pillars">
+          <strong>SOLID</strong> · Mobile-First · Offline-First<br>
+          All data stored on this device
+        </p>
+      </div>
+    </div>
+
+    <!-- NEW JOURNAL -->
+    <div id="screen-journal-new" class="screen">
+      <div class="app-header">
+        <div class="app-title">New Journal</div>
+      </div>
+      <div class="app-main">
+        <label class="label">Date</label>
+        <input class="input" type="date" value="2026-10-31" />
+
+        <label class="label">Description</label>
+        <input class="input" placeholder="What is this entry for?" value="Office rent – October" />
+
+        <div class="flex-between" style="margin-top:4px">
+          <span style="font-weight:700;font-size:14px">Lines</span>
+          <button class="btn btn-secondary btn-sm" style="margin:0">+ Line</button>
+        </div>
+
+        <div class="line-card">
+          <div class="line-num">Line 1</div>
+          <select class="select" style="margin-bottom:10px"><option>1000 – Assets / Cash</option><option>1100 – Cash at Bank</option></select>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <select class="select" style="margin:0"><option>Debit</option><option>Credit</option></select>
+            <input class="input" value="25,000.00" style="margin:0" />
+          </div>
+        </div>
+
+        <div class="line-card">
+          <div class="line-num">Line 2</div>
+          <select class="select" style="margin-bottom:10px"><option>5000 – Expenses / Rent</option><option>5100 – Rent Expense</option></select>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <select class="select" style="margin:0"><option>Credit</option><option>Debit</option></select>
+            <input class="input" value="25,000.00" style="margin:0" />
+          </div>
+        </div>
+
+        <div class="totals-bar">
+          <span>Dr 25,000.00</span>
+          <span class="balanced">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+            Balanced
+          </span>
+          <span>Cr 25,000.00</span>
+        </div>
+
+        <button class="btn btn-primary" onclick="show('journals')">Post Journal</button>
+        <button class="btn btn-secondary" onclick="show('journals')">Save as Draft</button>
+      </div>
+    </div>
+
+    <!-- JOURNALS -->
+    <div id="screen-journals" class="screen">
+      <div class="app-header">
+        <div class="app-title">Journals</div>
+        <button class="btn btn-primary btn-sm" style="margin:0" onclick="show('journal-new')">+ New</button>
+      </div>
+      <div class="app-main">
+        <div class="card journal-item">
+          <div class="row">
+            <span class="num">JE-2026-00012</span>
+            <span class="badge badge-posted">Posted</span>
+          </div>
+          <div class="meta">31 Oct 2026 · Office rent – October</div>
+        </div>
+        <div class="card journal-item">
+          <div class="row">
+            <span class="num">JE-2026-00011</span>
+            <span class="badge badge-posted">Posted</span>
+          </div>
+          <div class="meta">28 Oct 2026 · Client payment received</div>
+        </div>
+        <div class="card journal-item">
+          <div class="row">
+            <span class="num">JE-2026-00010</span>
+            <span class="badge badge-draft">Draft</span>
+          </div>
+          <div class="meta">25 Oct 2026 · Supplier invoice</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCOUNTS -->
+    <div id="screen-accounts" class="screen">
+      <div class="app-header">
+        <div class="app-title">Chart of Accounts</div>
+      </div>
+      <div class="app-main">
+        <div class="section-label">Asset</div>
+        <div class="card account-row">
+          <span><span class="code">1000</span> Assets</span>
+          <span class="side">Debit</span>
+        </div>
+        <div class="card account-row">
+          <span><span class="code">1100</span> Cash at Bank</span>
+          <span class="side">Debit</span>
+        </div>
+
+        <div class="section-label">Liability</div>
+        <div class="card account-row">
+          <span><span class="code">2000</span> Liabilities</span>
+          <span class="side">Credit</span>
+        </div>
+        <div class="card account-row">
+          <span><span class="code">2100</span> Accounts Payable</span>
+          <span class="side">Credit</span>
+        </div>
+
+        <div class="section-label">Expense</div>
+        <div class="card account-row">
+          <span><span class="code">5000</span> Expenses</span>
+          <span class="side">Debit</span>
+        </div>
+        <div class="card account-row">
+          <span><span class="code">5100</span> Rent Expense</span>
+          <span class="side">Debit</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRIAL BALANCE -->
+    <div id="screen-trial" class="screen">
+      <div class="app-header">
+        <div class="app-title">Trial Balance</div>
+      </div>
+      <div class="app-main">
+        <p class="muted" style="margin-bottom:16px">Generated 100% offline from local data</p>
+
+        <div class="tb-summary">
+          <div class="row"><span>Total Debit</span><span>1,25,450.00 INR</span></div>
+          <div class="row"><span>Total Credit</span><span>1,25,450.00 INR</span></div>
+          <div class="ok">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+            Balanced
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr><th>Code</th><th>Account</th><th>Debit</th><th>Credit</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1100</td><td>Cash at Bank</td><td>85,200.00</td><td></td></tr>
+            <tr><td>2100</td><td>Accounts Payable</td><td></td><td>32,100.00</td></tr>
+            <tr><td>3100</td><td>Capital</td><td></td><td>50,000.00</td></tr>
+            <tr><td>4100</td><td>Sales</td><td></td><td>43,350.00</td></tr>
+            <tr><td>5100</td><td>Rent Expense</td><td>25,000.00</td><td></td></tr>
+            <tr><td>5200</td><td>Utilities</td><td>15,250.00</td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="screen-settings" class="screen">
+      <div class="app-header">
+        <div class="app-title">Settings</div>
+      </div>
+      <div class="app-main">
+        <div class="card" style="margin-bottom:16px">
+          <div class="muted" style="margin-bottom:4px">Connectivity</div>
+          <div style="font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px">
+            <span class="dot"></span> Offline
+          </div>
+          <p class="muted" style="margin-top:10px;line-height:1.6">
+            Core bookkeeping never requires a network. Sync is optional and eventual.
+          </p>
+        </div>
+        <button class="btn btn-secondary">Download backup (JSON)</button>
+        <button class="btn btn-danger">Wipe all local data</button>
+        <p class="pillars">
+          Double-Entry Bookkeeping PWA<br>
+          <strong>SOLID · Mobile-First · Offline-First</strong>
+        </p>
+      </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+      <a href="#" class="nav-item active" onclick="show('home');return false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+        <span>Home</span>
+      </a>
+      <a href="#" class="nav-item" onclick="show('journals');return false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+        <span>Journals</span>
+      </a>
+      <a href="#" class="nav-item" onclick="show('accounts');return false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <span>Accounts</span>
+      </a>
+      <a href="#" class="nav-item" onclick="show('trial');return false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        <span>Reports</span>
+      </a>
+      <a href="#" class="nav-item" onclick="show('settings');return false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        <span>More</span>
+      </a>
+    </nav>
+  </div>
+
+  <script>
+    function show(name) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      const map = {
+        home: 'screen-home',
+        'journal-new': 'screen-journal-new',
+        journals: 'screen-journals',
+        accounts: 'screen-accounts',
+        trial: 'screen-trial',
+        settings: 'screen-settings'
+      };
+      const el = document.getElementById(map[name]);
+      if (el) {
+        el.classList.add('active');
+        el.querySelector('.app-main')?.classList.remove('active');
+        // re-trigger animation
+        const main = el.querySelector('.app-main');
+        if (main) {
+          main.style.animation = 'none';
+          main.offsetHeight;
+          main.style.animation = '';
+        }
+      }
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      const idx = { home: 0, journals: 1, 'journal-new': 1, accounts: 2, trial: 3, settings: 4 }[name];
+      if (idx !== undefined) document.querySelectorAll('.nav-item')[idx]?.classList.add('active');
+      window.scrollTo(0, 0);
+    }
+  </script>
+</body>
+</html>
